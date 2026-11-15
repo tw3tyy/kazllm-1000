@@ -1,0 +1,11 @@
+{
+  "source_sha256": {
+    "belebele.zip": "c645e750e111404806751509b5aa3f808a01e6029cd225d37e966dc694aca9e4",
+    "flores.tar.gz": "b8b0b76783024b85797e5cc75064eb83fc5288b41e9654dabc7be6ae944011f6"
+  },
+  "mt_source": "https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz",
+  "qa_source": "https://dl.fbaipublicfiles.com/belebele/Belebele.zip",
+  "custom_qa_note": "100 templated reading/arithmetic items. Report separately from Belebele.",
+  "probe_note": "10 templates times 10 subjects times 10 places. Template variants are correlated.",
+  "review_status": "1100 constructed items require independent language and answer review."
+}

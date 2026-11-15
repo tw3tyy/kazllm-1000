@@ -1,0 +1,19 @@
+{
+  "offline_tests": 42,
+  "items_by_task": {
+    "mt": 1000,
+    "qa": 1000,
+    "probe": 1000
+  },
+  "prompts_per_model": 5000,
+  "first_benchmark_batch": {
+    "gemini-3.5-flash-lite": 5,
+    "qwen2.5-7b": 5,
+    "gemma3": 5
+  },
+  "constructed_qa": 100,
+  "templated_probes": 1000,
+  "human_review": "pending",
+  "full_runs": "pending",
+  "browser_verification": "not performed in this update"
+}

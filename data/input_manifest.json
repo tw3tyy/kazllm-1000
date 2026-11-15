@@ -1,0 +1,8 @@
+{
+  "sha256": {
+    "data/benchmark.jsonl": "fa25e40950c54c256a160718336f2b931fe21c3a6d78e997936218092eea4042",
+    "pilot/benchmark.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "generated_prompts_sha256": "494f8b4b2ec2baa9d570b52224799be8efc5bdbda9215dee01d13a70d007fd32",
+  "provenance_note": "900 published Belebele questions plus 100 constructed reading/arithmetic questions; 1000 templated probes require human review."
+}
