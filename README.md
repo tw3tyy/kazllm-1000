@@ -50,3 +50,12 @@ python3 -m unittest discover -s tests -v
 ```
 
 Use `build_expanded_dataset.py SOURCE_DIR` in a fresh study directory with the official `flores.tar.gz` and `belebele.zip` to rebuild the data. An existing frozen benchmark is protected from replacement.
+
+
+## Rejected responses and continuation
+
+`run_batch.sh` enables `--continue-on-invalid`. Incomplete, filtered or empty service responses are saved as failure evidence in `outputs/failures/` and collection continues with the next prompt. These records do not count as successful answers. Network errors, quota exhaustion, unknown model identities and changed decoding settings still stop the affected model.
+
+Known failed prompt IDs are skipped on the next continuing run. To retry them explicitly, run `./run_gemini.sh --free-tier-confirmed --continue-on-invalid --retry-failed` or `./run_local.sh --continue-on-invalid --retry-failed`.
+
+The progress display separates successful, failed, and unattempted prompts. Completing all attempts can leave fewer than 5000 successful responses; remaining failure counts must be reported alongside quality scores. Final complete-success scoring remains pending while successful responses are missing. Stored successful responses retain their original decoding settings.

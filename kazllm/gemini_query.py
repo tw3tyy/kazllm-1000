@@ -154,7 +154,7 @@ def read_validated(path, prompts, spec):
     return rows
 
 
-def run_model(prompts, out_path, spec, max_new=None):
+def run_model(prompts, out_path, spec, max_new=None, continue_on_invalid=False, retry_failed=False):
     if os.environ.get("GEMINI_FREE_TIER_CONFIRMED") != "1":
         raise RuntimeError("First verify Free tier with billing disabled in AI Studio. The API cannot prove billing status.")
     existing = read_validated(out_path, prompts, spec)
@@ -165,21 +165,37 @@ def run_model(prompts, out_path, spec, max_new=None):
     interval = spec.get("min_interval_seconds", 7)
     if not isinstance(interval, (float, int)) or interval < 1:
         raise ValueError("Gemini interval must be at least one second")
-    initial_count = len(done)
+    from . import failures
+    fingerprint = {"backend": "gemini_api"}
+    rejected = failures.read(path, prompts, spec, make_payload, fingerprint) if continue_on_invalid else {}
+    attempted = 0
     for r in prompts:
         make_payload(r, spec)
     # Pause before every request, including the first request after resume.
     with path.open("a", encoding="utf-8") as f:
         for row in prompts:
-            if max_new is not None and len(done) - initial_count >= max_new:
+            if max_new is not None and attempted >= max_new:
                 break
-            if row["prompt_id"] in done:
+            if row["prompt_id"] in done or (not retry_failed and row["prompt_id"] in rejected):
                 continue
+            attempted += 1
             time.sleep(interval)
             started, tick = now(), time.perf_counter()
             payload = make_payload(row, spec)
             response = request(spec["id"], payload)
-            text = validate_response(response)
+            if version and response.get("modelVersion") and response["modelVersion"] != version:
+                raise ValueError("Gemini serving version changed; stopped before mixing saved versions")
+            try:
+                text = validate_response(response)
+            except ValueError as exc:
+                if not continue_on_invalid or str(exc) not in (
+                        "Gemini prompt blocked; no successful answer saved",
+                        "Gemini incomplete, filtered or truncated response rejected",
+                        "Gemini returned no answer text"):
+                    raise
+                failures.append(path, row, spec, payload, response, str(exc), fingerprint)
+                print(f"FAILED {row['prompt_id']}: {exc}. Recorded separately; continuing.", flush=True)
+                continue
             if version and response["modelVersion"] != version:
                 raise ValueError("Gemini serving version changed; stopped before mixing saved versions")
             version = response["modelVersion"]

@@ -1,5 +1,5 @@
 {
-  "offline_tests": 43,
+  "offline_tests": 45,
   "items_by_task": {
     "mt": 1000,
     "qa": 1000,
@@ -16,5 +16,23 @@
   "human_review": "pending",
   "full_runs": "pending",
   "browser_verification": "not performed in this update",
-  "batch_failure_isolation": "verified"
+  "batch_failure_isolation": "verified",
+  "invalid_output_continuation": "Verified on a real Qwen truncated response followed by a successful response",
+  "latest_counts": {
+    "gemini-3.5-flash-lite": {
+      "benchmark": 122,
+      "smoke": 0,
+      "failed": 0
+    },
+    "qwen2.5-7b": {
+      "benchmark": 85,
+      "smoke": 0,
+      "failed": 1
+    },
+    "gemma3": {
+      "benchmark": 195,
+      "smoke": 3,
+      "failed": 0
+    }
+  }
 }

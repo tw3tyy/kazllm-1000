@@ -35,8 +35,12 @@ def status(config, items, ps):
         try:
             full = saved_rows("outputs", ps, spec)
             smoke = saved_rows("smoke_outputs", ps, spec)
+            from kazllm import failures
+            rejected = failures.checked_records(ROOT / "outputs" / (spec["name"] + ".jsonl"), ps, spec)
+            rejected_ids = set(rejected) - {r["prompt_id"] for r in full}
             counts[spec["name"]] = len(full)
             print(f"  {spec['name']}: {len(full)}/{len(ps)} benchmark responses, {len(smoke)} smoke-test responses.")
+            print(f"    Failed prompts: {len(rejected_ids)} | Not attempted: {len(ps) - len(full) - len(rejected_ids)}")
         except Exception as exc:
             print(f"  {spec['name']}: saved records failed validation: {exc}")
             counts[spec["name"]] = -1

@@ -7,11 +7,11 @@ if ! [[ "$limit" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 failed=0
-if ! ./run_gemini.sh --free-tier-confirmed --max-new "$limit"; then
+if ! ./run_gemini.sh --free-tier-confirmed --max-new "$limit" --continue-on-invalid; then
   failed=1
 fi
 for model in qwen2.5-7b gemma3; do
-  if ! ./run_local.sh --model "$model" --max-new "$limit"; then
+  if ! ./run_local.sh --model "$model" --max-new "$limit" --continue-on-invalid; then
     failed=1
   fi
 done

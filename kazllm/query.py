@@ -137,29 +137,43 @@ def read_validated(path, prompts, spec, identity=None):
     return rows
 
 
-def run_model(prompts, out_path, spec, identity=None, version=None, max_new=None):
+def run_model(prompts, out_path, spec, identity=None, version=None, max_new=None, continue_on_invalid=False, retry_failed=False):
     if spec.get("backend") == "gemini":
         from .gemini_query import run_model as gemini_run
-        return gemini_run(prompts, out_path, spec, max_new=max_new)
+        return gemini_run(prompts, out_path, spec, max_new=max_new, continue_on_invalid=continue_on_invalid, retry_failed=retry_failed)
     path = Path(out_path)
     existing = read_validated(path, prompts, spec, identity)
     if existing and existing[0]['ollama_version'] != version:
         raise ValueError('Ollama version changed since the saved run')
     done = {r['prompt_id'] for r in existing}
     path.parent.mkdir(parents=True, exist_ok=True)
-    initial_count = len(done)
+    from . import failures
+    fingerprint = {"weights_digest": identity['digest'], "show_sha256": identity['show_sha256'], "version": version}
+    rejected = failures.read(path, prompts, spec, make_payload, fingerprint) if continue_on_invalid else {}
+    attempted = 0
     for row in prompts:
         make_payload(row, spec)
     with path.open('a', encoding='utf-8') as f:
         for row in prompts:
-            if max_new is not None and len(done) - initial_count >= max_new:
+            if max_new is not None and attempted >= max_new:
                 break
-            if row['prompt_id'] in done:
+            if row['prompt_id'] in done or (not retry_failed and row['prompt_id'] in rejected):
                 continue
+            attempted += 1
             payload = make_payload(row, spec)
             started, tick = now(), time.perf_counter()
             response = request('/api/chat', payload)
-            text = validate_response(response, spec['id'])
+            if response.get('model') != spec['id']:
+                raise ValueError('Unexpected returned model')
+            try:
+                text = validate_response(response, spec['id'])
+            except ValueError as exc:
+                if not continue_on_invalid or str(exc) not in (
+                        'Incomplete/truncated local response rejected', 'Empty local answer rejected'):
+                    raise
+                failures.append(path, row, spec, payload, response, str(exc), fingerprint)
+                print(f"FAILED {row['prompt_id']}: {exc}. Recorded separately; continuing.", flush=True)
+                continue
             record = {'prompt_id': row['prompt_id'], 'output': text, 'provenance': 'ollama_local',
                 'model': spec['id'], 'requested_model': spec['id'], 'weights_digest': identity['digest'],
                 'show_sha256': identity['show_sha256'], 'ollama_version': version,

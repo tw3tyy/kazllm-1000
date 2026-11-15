@@ -1,0 +1,19 @@
+{
+  "test_items": 3000,
+  "pilot_items": 0,
+  "overlap_items": 0,
+  "excluded_item_ids": [],
+  "overlap_tasks": {},
+  "retained_tasks": {
+    "mt": 1000,
+    "qa": 1000,
+    "probe": 1000
+  },
+  "test_tasks": {
+    "mt": 1000,
+    "qa": 1000,
+    "probe": 1000
+  },
+  "test_sha256": "fa25e40950c54c256a160718336f2b931fe21c3a6d78e997936218092eea4042",
+  "note": "Sensitivity analysis excludes pilot overlap; it does not undo prior exposure."
+}

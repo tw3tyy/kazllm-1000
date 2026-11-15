@@ -1,0 +1,62 @@
+{
+  "versions": {
+    "python": "3.13.2",
+    "platform": "macOS-26.1-arm64-arm-64bit-Mach-O",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "scipy": "1.18.1",
+    "sacrebleu": "2.6.0",
+    "matplotlib": "3.11.2",
+    "tabulate": "0.10.0",
+    "torch": null,
+    "transformers": null,
+    "sentencepiece": null
+  },
+  "metrics": {
+    "bleu": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+    "chrf": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+  },
+  "config": {
+    "backend": "gemini_and_ollama",
+    "models": [
+      {
+        "name": "gemini-3.5-flash-lite",
+        "id": "gemini-3.5-flash-lite",
+        "backend": "gemini",
+        "qa_max_tokens": 512,
+        "mt_max_tokens": 2048,
+        "min_interval_seconds": 7,
+        "temperature": 0,
+        "seed": 42,
+        "num_ctx": 8192
+      },
+      {
+        "name": "qwen2.5-7b",
+        "id": "qwen2.5:7b",
+        "qa_max_tokens": 64,
+        "mt_max_tokens": 1024,
+        "backend": "ollama_local",
+        "temperature": 0,
+        "seed": 42,
+        "num_ctx": 8192
+      },
+      {
+        "name": "gemma3",
+        "id": "gemma3:latest",
+        "qa_max_tokens": 64,
+        "mt_max_tokens": 1024,
+        "backend": "ollama_local",
+        "temperature": 0,
+        "seed": 42,
+        "num_ctx": 8192
+      }
+    ],
+    "temperature": 0,
+    "num_ctx": 8192,
+    "bootstrap_samples": 1000,
+    "seed": 42,
+    "gemini_min_interval_seconds": 7
+  },
+  "generated_at": "2026-11-15T14:31:56.682038+00:00",
+  "test_sha256": "fa25e40950c54c256a160718336f2b931fe21c3a6d78e997936218092eea4042"
+}

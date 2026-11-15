@@ -17,6 +17,8 @@ def main():
     group.add_argument("--smoke", action="store_true", help="Three real calls, saved separately")
     ap.add_argument("--free-tier-confirmed", action="store_true", help="Declare that AI Studio project is Free tier and billing is disabled")
     ap.add_argument("--max-new", type=int, help="Maximum new benchmark requests per selected model this run")
+    ap.add_argument("--continue-on-invalid", action="store_true", help="Record rejected responses separately and continue")
+    ap.add_argument("--retry-failed", action="store_true", help="Retry previously recorded failures")
     args = ap.parse_args()
     if args.max_new is not None and args.max_new < 1:
         raise ValueError("--max-new must be positive")
@@ -50,7 +52,7 @@ def main():
         if args.smoke:
             chosen = [next(r for r in prompts if r["task"] == task) for task in ("qa", "mt", "probe")]
         folder = "smoke_outputs" if args.smoke else "outputs"
-        query.run_model(chosen, ROOT / folder / (spec["name"] + ".jsonl"), spec, max_new=args.max_new)
+        query.run_model(chosen, ROOT / folder / (spec["name"] + ".jsonl"), spec, max_new=args.max_new, continue_on_invalid=args.continue_on_invalid, retry_failed=args.retry_failed)
         print("Smoke finished; excluded from benchmark results." if args.smoke else
               "Gemini batch saved. Check progress before final scoring.")
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import demo
-from kazllm import baselines, data, metrics, score, prompts as templates
+from kazllm import failures, baselines, data, metrics, score, prompts as templates
 from pipeline import ROOT, load_inputs, overlap_audit
 
 SITE = Path(__file__).resolve().parent
@@ -20,10 +20,13 @@ def collect():
     names = [s["name"] for s in config["models"]]
     saved = {}
     counts = {}
+    failed = {}
     for spec in config["models"]:
         full = demo.saved_rows("outputs", ps, spec)
         smoke = demo.saved_rows("smoke_outputs", ps, spec)
-        counts[spec["name"]] = {"benchmark": len(full), "smoke": len(smoke)}
+        rejected = failures.checked_records(ROOT / "outputs" / (spec["name"] + ".jsonl"), ps, spec)
+        failed[spec["name"]] = {pid: r for pid, r in rejected.items() if pid not in {v["prompt_id"] for v in full}}
+        counts[spec["name"]] = {"benchmark": len(full), "smoke": len(smoke), "failed": len(failed[spec["name"]])}
         # Benchmark records take precedence over smoke records, as in demo.inspect_item.
         merged = {r["prompt_id"]: (r, "smoke_outputs") for r in smoke}
         merged.update({r["prompt_id"]: (r, "outputs") for r in full})
@@ -31,7 +34,7 @@ def collect():
 
     by_item = {}
     for row in ps:
-        entry = {"cond": row["condition"], "prompt": row["prompt"], "responses": {}}
+        entry = {"cond": row["condition"], "prompt": row["prompt"], "responses": {}, "failures": {}}
         if row["task"] == "qa":
             entry["gold"] = row["gold"]
         else:
@@ -40,6 +43,9 @@ def collect():
         for name in names:
             hit = saved[name].get(row["prompt_id"])
             if not hit:
+                rejected = failed[name].get(row["prompt_id"])
+                if rejected:
+                    entry["failures"][name] = rejected["reason"]
                 continue
             record, folder = hit
             resp = {"output": record["output"], "folder": folder, "time": record.get("time"),

@@ -307,7 +307,7 @@ function renderProgress() {
     return `<div class="model-card">
       <div class="top"><span class="name">${esc(label(m))}</span><span class="count">${c.benchmark}<small>/${total}</small></span></div>
       <div class="bar" role="img" aria-label="${c.benchmark} of ${total} responses"><i style="width:${(share * 100).toFixed(1)}%"></i></div>
-      <div class="meta"><span>${pct(share)} of benchmark</span><span>${c.smoke} smoke-test</span></div>
+      <div class="meta"><span>${pct(share)} of benchmark</span><span>${c.failed || 0} failed · ${c.smoke} smoke-test</span></div>
     </div>`;
   }).join("");
   const s = DATA.status;
@@ -368,13 +368,13 @@ function renderCondition(item, p) {
         return `<li class="${cls}"><span class="k">${o.k}</span><span>${esc(o.text)}</span><span class="tag">${tag}</span></li>`;
       }).join("") + `</ul>`;
     html += r ? `<div class="mono">Raw response: ${esc(r.output)} · Parsed: ${esc(r.parsed || "unparsed")} · ${r.correct ? "Correct" : "Incorrect"}</div>`
-              : `<div class="pending-note">Pending. ${esc(label(state.model))} has no saved response for this prompt.</div>`;
+              : `<div class="pending-note">${p.failures?.[state.model] ? "Failed. " + esc(p.failures[state.model]) : "Pending. " + esc(label(state.model)) + " has no saved response for this prompt."}</div>`;
   } else {
     html += `<div class="text-block"><span class="label">Source</span><div class="body">${esc(p.source)}</div></div>`;
     if (r) {
       html += `<div class="text-block"><span class="label">Model response</span><div class="body response">${highlight(r.output, p.reference)}</div></div>`;
     } else {
-      html += `<div class="pending-note">Pending. ${esc(label(state.model))} has no saved response for this prompt.</div>`;
+      html += `<div class="pending-note">${p.failures?.[state.model] ? "Failed. " + esc(p.failures[state.model]) : "Pending. " + esc(label(state.model)) + " has no saved response for this prompt."}</div>`;
     }
     html += `<div class="text-block"><span class="label">Reference</span><div class="body ref">${esc(p.reference)}</div></div>`;
     if (r) html += `<div class="meter"><span class="label">chrF2</span><div class="bar"><i class="${band(r.chrf)}" style="width:${r.chrf}%"></i></div><b>${r.chrf.toFixed(1)}</b></div>`;

@@ -15,6 +15,8 @@ def main():
     group.add_argument("--smoke", action="store_true", help="Three real prompts per model, saved separately")
     ap.add_argument("--model", help="Configured output name")
     ap.add_argument("--max-new", type=int, help="Maximum new benchmark requests per selected model this run")
+    ap.add_argument("--continue-on-invalid", action="store_true", help="Record rejected responses separately and continue")
+    ap.add_argument("--retry-failed", action="store_true", help="Retry previously recorded failures")
     args = ap.parse_args()
     if args.max_new is not None and args.max_new < 1:
         raise ValueError("--max-new must be positive")
@@ -45,7 +47,7 @@ def main():
         folder = "smoke_outputs" if args.smoke else "outputs"
         for spec in specs:
             query.run_model(chosen, ROOT / folder / (spec["name"] + ".jsonl"),
-                            spec, identities[spec["name"]], version, max_new=args.max_new)
+                            spec, identities[spec["name"]], version, max_new=args.max_new, continue_on_invalid=args.continue_on_invalid, retry_failed=args.retry_failed)
             query.request("/api/generate", {"model": spec["id"], "keep_alive": 0})
         print("Smoke check complete; these are not benchmark results." if args.smoke else
               "Local batch saved. Check progress before scoring. Next: python3 reproduce_all.py")
