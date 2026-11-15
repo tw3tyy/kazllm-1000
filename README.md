@@ -30,7 +30,7 @@ Check the Google project free-tier/billing settings before using the confirmatio
 ./refresh_site.sh
 ```
 
-Use `./run_batch.sh 25` to attempt a batch for Gemini and both local models and rebuild the site. Errors are printed and progress is preserved. The scripts skip saved successful prompts. Translation pairs, QA pairs, and probes are interleaved, so each five-prompt block visits all task types. A response is saved only after the service response passes validation. Probe chrF2 measures overlap with the reference.
+Use `./run_batch.sh 25` to attempt a batch for Gemini and both local models and rebuild the site. Errors are printed and progress is preserved. Qwen and Gemma are attempted separately, so failure of one does not prevent attempting the other. The scripts skip saved successful prompts. Translation pairs, QA pairs, and probes are interleaved, so each five-prompt block visits all task types. A response is saved only after the service response passes validation. Probe chrF2 measures overlap with the reference.
 
 Omit --max-new to continue through all remaining prompts. Full inference for three models requires 15000 requests and can take hours or days. Free API quotas can require multiple sessions. CLI flags do not establish billing status.
 

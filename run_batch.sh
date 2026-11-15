@@ -10,9 +10,11 @@ failed=0
 if ! ./run_gemini.sh --free-tier-confirmed --max-new "$limit"; then
   failed=1
 fi
-if ! ./run_local.sh --max-new "$limit"; then
-  failed=1
-fi
+for model in qwen2.5-7b gemma3; do
+  if ! ./run_local.sh --model "$model" --max-new "$limit"; then
+    failed=1
+  fi
+done
 ./refresh_site.sh
 ./demo.sh --status
 exit "$failed"

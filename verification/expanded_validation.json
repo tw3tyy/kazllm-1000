@@ -1,5 +1,5 @@
 {
-  "offline_tests": 42,
+  "offline_tests": 43,
   "items_by_task": {
     "mt": 1000,
     "qa": 1000,
@@ -15,5 +15,6 @@
   "templated_probes": 1000,
   "human_review": "pending",
   "full_runs": "pending",
-  "browser_verification": "not performed in this update"
+  "browser_verification": "not performed in this update",
+  "batch_failure_isolation": "verified"
 }
