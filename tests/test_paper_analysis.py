@@ -31,6 +31,11 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(lib.holm([0.01, 0.04, 0.03]), [0.03, 0.06, 0.06])
 
 
+EARLIER_STUDY_FILES = ("data/overlap_audit.json", "assignment4/results/results.json")
+
+
+@unittest.skipUnless(all((ROOT / f).exists() for f in EARLIER_STUDY_FILES),
+                     "needs the earlier 830-prompt study data from tw3tyy/kazllm (see paper/README.md)")
 class ReproductionTests(unittest.TestCase):
     """The new analysis must reproduce the numbers already reported in Assignment 4."""
 

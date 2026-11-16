@@ -1,5 +1,12 @@
 # Final manuscript: reproduction guide
 
+> **Earlier study.** This manuscript reports the earlier 830-prompt study (430 paired items)
+> from [tw3tyy/kazllm](https://github.com/tw3tyy/kazllm), not the 1000-item benchmark in this
+> repository. Its numbers, tables and figures in `results/`, `generated/` and `figures/` are
+> frozen outputs of that study. `make results` and the reproduction tests need that study's
+> `data/benchmark.jsonl`, `data/overlap_audit.json`, `outputs/` and `assignment4/results/`, so
+> run them in a checkout of tw3tyy/kazllm. In this repository the reproduction tests are skipped.
+
 Every number, table and figure in `main.tex` is produced from the saved logs by one command.
 No number is typed by hand: the text reads LaTeX macros from `generated/numbers.tex`.
 
