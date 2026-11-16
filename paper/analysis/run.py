@@ -402,8 +402,26 @@ def pct(x):
 
 
 # --------------------------------------------------------------------------- tables
+class _TexDir:
+    """Writes table files with typographic minus signs."""
+
+    def __init__(self, path):
+        self.path = path
+
+    def __truediv__(self, name):
+        return _TexFile(self.path / name)
+
+
+class _TexFile:
+    def __init__(self, path):
+        self.path = path
+
+    def write_text(self, text, encoding="utf-8"):
+        self.path.write_text(re.sub(r"(?<![\\w${^])-(?=\d)", "$-$", text), encoding=encoding)
+
+
 def write_tables(R, systems, main_model, coverage):
-    gen = OUT / "generated"
+    gen = _TexDir(OUT / "generated")
     # Table: main MT results
     lines = [r"\begin{tabular}{@{}lccc@{}}", r"\toprule",
              r"System & EN$\rightarrow$KK & KK$\rightarrow$EN & Gap (KK$-$EN) \\", r"\midrule"]
