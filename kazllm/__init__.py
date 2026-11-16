@@ -1,1 +1,1 @@
-"""kazllm: pipeline for comparing LLM performance on Kazakh and English (Assignment 3)."""
+"""kazllm: paired Kazakh-English evaluation pipeline for large language models (translation, QA, probes)."""
