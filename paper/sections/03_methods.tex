@@ -1,0 +1,91 @@
+\section{Materials and Methods}
+\label{sec:methods}
+
+\subsection{Study Design}
+The study is a quantitative, paired within-item benchmark (Fig.~\ref{fig:design}). Every item exists in a Kazakh and an English version with the same content, and every model receives both versions under identical English instructions. The language condition is therefore the only factor that changes within a pair, so differences between conditions cannot be attributed to item difficulty. For translation, the language condition is the translation direction: English to Kazakh (\ENKK) or Kazakh to English (\KKEN). For question answering (QA), it is the language of the passage, question and options. The unit of analysis is one saved model response to one prompt.
+
+\begin{figure*}[!t]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=1.05cm, fill=#1},
+  w/.style={text width=#1}, w/.default={2.35cm},
+  box/.default={kkblue!8},
+  arr/.style={-{Latex[length=2mm]}, thick, draw=black!70},
+  lab/.style={font=\scriptsize\itshape, text=black!60}]
+\node[box=black!5, w] (data) {\textbf{Frozen inputs}\\FLORES-200 140, KazParC 60, Belebele 200, probes 30};
+\node[box, w, right=0.55cm of data] (prompts) {\textbf{Prompt builder}\\830 prompts/model, identical EN instructions};
+\node[box, w, right=0.55cm of prompts] (run) {\textbf{Model runners}\\$T{=}0$, seed 42, hashed records};
+\node[box, w, right=0.55cm of run] (score) {\textbf{Scoring}\\chrF2, chrF++, BLEU, TER; QA accuracy};
+\node[box=enorange!12, w, right=0.55cm of score] (stats) {\textbf{Inference}\\paired bootstrap, Wilcoxon + Holm, McNemar};
+\node[box=black!5, below=0.7cm of run, xshift=-1.3cm] (sys) {\textbf{Systems}\\Gemini 3.5 Flash-Lite (\CovGemini/830 saved)\\ \textcolor{pend}{Qwen 2.5 1.5B, Gemma 3, NLLB-200: pending}};
+\node[box=enorange!12, below=0.7cm of score, xshift=1.6cm] (diag) {\textbf{Diagnostics}\\script audit $\cdot$ prefix near-miss with control\\truncation ablation $\cdot$ API token usage};
+\draw[arr] (data) -- (prompts);
+\draw[arr] (prompts) -- (run);
+\draw[arr] (run) -- (score);
+\draw[arr] (score) -- (stats);
+\draw[arr] (run.south |- sys.north) -- (run.south);
+\draw[arr] (score.south) -- (score.south |- diag.north);
+\node[lab, above=0.05cm of data] {SHA-256 manifest};
+\node[lab, above=0.05cm of run] {resumable, no simulation};
+\node[lab, above=0.05cm of stats] {seed 42, 1{,}000 resamples};
+\end{tikzpicture}
+\caption{Study pipeline. Grey boxes are inputs and systems, blue boxes are deterministic processing stages, and orange boxes are the statistical analysis and diagnostics. Every stage reads only saved files, and one command regenerates all reported numbers.}
+\label{fig:design}
+\end{figure*}
+
+\subsection{Benchmark}
+Table~\ref{tab:data} summarises the KAZLLM benchmark. Translation items come from the FLORES-200 \emph{devtest} split, whose sentences were written in English and professionally translated into Kazakh~\cite{goyal2022flores,nllb2022}, and from KazParC~\cite{yeshpanov2024kazparc}, which adds sentence pairs from Kazakh-centred sources. FLORES items carry a source domain (Wikinews, Wikibooks or Wikivoyage). QA items are four-option questions from Belebele~\cite{bandarkar2024belebele}, aligned across the Kazakh Cyrillic and English versions by passage link and question number. The 30 probes were written by the authors to test six phenomena with five sentences each: word order, case marking, possessive marking, negation, tense and aspect, and question formation. Items were selected with a fixed seed (42); translation pairs had to contain 5--40 English words, contain letters in both languages, and contain no URLs or duplicates. The benchmark file and the pilot file are frozen by SHA-256 hashes, and the prompt builder verifies a hash of all generated prompts before any run.
+
+\begin{table}[!t]
+\centering
+\caption{Composition of the KAZLLM Benchmark}
+\label{tab:data}
+\footnotesize
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Task & Source & Items & Prompts \\
+\midrule
+Translation & FLORES-200 devtest & 140 & 280 \\
+Translation & KazParC & 60 & 120 \\
+Question answering & Belebele & 200 & 400 \\
+Probes (\ENKK) & Team-written & 30 & 30 \\
+\midrule
+Total & & 430 & 830 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Systems and Generation Settings}
+The frozen protocol originally named GPT-4o, Llama~3.1~70B and Gemini~1.5~Pro. Because the study had no paid API budget and a laptop with 8~GB of memory, the lineup was revised before data collection to Gemini 3.5 Flash-Lite through the Google Gemini API (returned model version \texttt{3.5-flash-lite-07-2026}) and two locally run open models, Qwen~2.5~1.5B~\cite{qwen2025tech} and Gemma~3~\cite{gemma2025tech}, through Ollama. An earlier Gemini 2.5 Flash-Lite configuration returned HTTP 404 errors during generation and was replaced before any benchmark response was saved; its configuration is archived in the repository.
+
+All requests used zero-shot prompts with fixed English instructions (``Translate the following \{source\} sentence into \{target\}. Output only the translation.''), temperature 0 and seed 42. Gemini used the minimal thinking level and output budgets of 2{,}048 tokens for translation and 512 for QA. Each saved record stores the prompt identifier, the prompt hash, the request hash, the requested and returned model names, timestamps, elapsed time and the raw API response, including the token counts reported by the service. Collection took place on 10~November 2026 (01:56--15:03 Almaty time, including pauses) and stopped after \CovGemini{} responses because of repeated connection resets; the runner resumes from saved records and never fills gaps with simulated text. The responses were collected in benchmark order, so the saved set consists of the first \NPairs{} complete FLORES-200 pairs.
+
+\subsection{Metrics}
+The primary metric is corpus-level chrF2 (character n-grams up to order 6, $\beta=2$)~\cite{popovic2015chrf}, chosen in the protocol because character overlap gives partial credit to inflected forms and does not depend on a word tokenizer. Secondary metrics are chrF++ (adding word bigrams)~\cite{popovic2017chrfpp}, BLEU~\cite{papineni2002bleu} and TER~\cite{snover2006ter}, all computed with sacreBLEU~2.6.0 default signatures and one reference~\cite{post2018sacrebleu}. For a metric $m$, the directional gap is
+\begin{equation}
+\gap_m = m(\text{\ENKK}) - m(\text{\KKEN}),
+\label{eq:gap}
+\end{equation}
+so that negative values indicate lower quality when the model writes Kazakh (for TER, where lower is better, positive values indicate the same). Model outputs were stripped only of wrappers such as code fences or a leading ``Translation:'' label; their content was never edited. QA accuracy is the share of items whose parsed answer letter equals the gold option; unparsable answers count as wrong.
+
+\subsection{Baselines}
+A dictionary baseline substitutes 48 high-frequency word forms and copies all other tokens; it uses no learned parameters and is evaluated on exactly the same items. It is a deliberately low bar that checks whether the LLM outputs carry translation signal at all. The strong translation baseline specified in the protocol is NLLB-200 distilled 600M~\cite{nllb2022,nllb2024nature}, a dedicated multilingual translation model; it is needed to separate an LLM-specific gap from a gap that any system would show into Kazakh. Its runner is included but its outputs are pending. For QA, two rules that ignore language provide calibration: always answering~A, and seeded uniform random guessing.
+
+\subsection{Statistical Analysis}
+Uncertainty for corpus scores and gaps is estimated with a paired percentile bootstrap~\cite{koehn2004significance}: \NBoot{} resamples of whole items, drawn once with seed 42 and reused for every quantity, so that both directions of an item always enter a resample together. Sentence-level chrF2 differences are tested with two-sided Wilcoxon signed-rank tests~\cite{wilcoxon1945}, reporting the matched-pairs rank-biserial correlation $r_{\mathrm{rb}}$ as effect size and a Holm correction across the three planned comparisons~\cite{holm1979}. Paired QA outcomes are compared with the exact McNemar test~\cite{mcnemar1947} and exact Clopper--Pearson intervals~\cite{clopper1934}. H1 for translation is supported if the 95\% interval of $\gap_{\mathrm{chrF2}}$ lies below zero and, once NLLB outputs exist, below the NLLB gap. Subgroup analyses by domain and source length are exploratory and are not corrected for multiplicity.
+
+\subsection{Diagnostics}
+\paragraph*{Script audit} For every Kazakh output we compute the share of Latin letters among all Latin and Cyrillic letters; outputs with a share above 0.5 are flagged as mostly Latin. A sensitivity analysis recomputes the gap without these items.
+
+\paragraph*{Inflection-tolerant matching} To test whether outputs often contain the right stem with a different ending, words are lower-cased letter sequences, and $M_\infty$ denotes the clipped number of reference words reproduced exactly by the output. $M_k$ is the same count after every word in output and reference is cut to its first $k$ letters. The near-miss rate
+\begin{equation}
+\mathrm{NM}_k = \frac{\sum_i \bigl(M_k^{(i)} - M_\infty^{(i)}\bigr)}{\sum_i |r^{(i)}|}
+\label{eq:nm}
+\end{equation}
+is the share of reference words matched only at the prefix level, where $|r^{(i)}|$ is the number of words in reference $i$. Because short prefixes also match unrelated words, we compute a control in which each output is paired with the reference of another item (shifted by 69 positions); the control estimates chance-level prefix matches in each language. We use $k=\KPrimary$ as the main setting and report $k=3$--8 as sensitivity. As an ablation, all metrics are recomputed after cutting every word in outputs and references to $k$ letters; if suffix differences drive the gap, the gap should shrink.
+
+\paragraph*{Token usage} The API reports the number of visible output tokens per response. Because both directions of an item express the same content, the ratio of output tokens for Kazakh and English outputs, normalised by their character lengths, estimates the tokenization premium for Kazakh. A joint regression of prompt tokens on source length in both directions gives a second, input-side estimate.
+
+\subsection{Ethics and Reproducibility}
+The study involves no human participants and no personal data; the benchmark sources are public under CC BY-SA 4.0 (FLORES-200, Belebele) and CC BY 4.0 (KazParC) licences, and the probes were written by the authors. API keys are entered at run time and are never stored. The analysis was run with Python~3.12, NumPy~2.5, SciPy~1.18 and sacreBLEU~2.6.0, pinned in the repository; the sacreBLEU signatures are stored with the results. A single command, \texttt{python3 -m paper.analysis.run}, writes every number, table and figure in this article from the saved logs, and a test suite checks that it reproduces previously reported values exactly.

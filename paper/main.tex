@@ -1,0 +1,83 @@
+% Final manuscript, Research Methods and Tools (SE-2414), Astana IT University.
+% Build: latexmk -pdf main.tex   (Overleaf: upload the paper/ folder, main document = main.tex)
+% All numbers come from generated/numbers.tex, written by `python3 -m paper.analysis.run`.
+\documentclass[journal]{IEEEtran}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cite}
+\usepackage{url}
+
+% Cyrillic examples: \kk{Cyrillic}{transliteration}. Overleaf has T2A fonts and prints the Cyrillic;
+% a TeX installation without them falls back to the transliteration.
+\newif\ifcyrillic
+\IfFileExists{t2aenc.def}{\cyrillictrue}{\cyrillicfalse}
+\ifcyrillic
+  \usepackage[T2A,T1]{fontenc}
+  \newcommand{\kk}[2]{{\fontencoding{T2A}\selectfont #1}}
+\else
+  \usepackage[T1]{fontenc}
+  \newcommand{\kk}[2]{\textit{#2}}
+\fi
+
+\definecolor{kkblue}{HTML}{0072B2}
+\definecolor{enorange}{HTML}{E69F00}
+\definecolor{pend}{HTML}{8C8C8C}
+
+\input{generated/numbers}
+
+\newcommand{\gap}{\ensuremath{\Delta}}
+\newcommand{\ENKK}{EN$\rightarrow$KK}
+\newcommand{\KKEN}{KK$\rightarrow$EN}
+
+\hyphenation{Ka-zakh chrF Be-le-be-le Kaz-ParC}
+
+\begin{document}
+
+\title{Kazakh--English Performance Gaps in Large Language Models: A Paired Benchmark with Morphology- and Tokenization-Aware Diagnostics}
+
+\author{Birkhanym~Kazhymukhamet,
+        Meruert~Khaigeldinova,
+        and~Dana~Bekbosyn%
+\thanks{The authors are with the School of Software Engineering, Astana IT University, Astana 010000, Kazakhstan.}%
+\thanks{Corresponding author: B.~Kazhymukhamet (e-mail: [corresponding e-mail]).}}
+
+\markboth{Kazhymukhamet \MakeLowercase{\textit{et al.}}: Kazakh--English Performance Gaps in Large Language Models}%
+{Kazhymukhamet \MakeLowercase{\textit{et al.}}: Kazakh--English Performance Gaps in Large Language Models}
+
+\maketitle
+
+\begin{abstract}
+\textit{Background:} Large language models (LLMs) are widely used for Kazakh, an agglutinative Turkic language with limited training data, yet their reliability is rarely measured on content held constant across Kazakh and English.
+\textit{Aim:} We quantify how LLM translation quality differs between the two target languages and identify measurable sources of the difference.
+\textit{Method:} We release KAZLLM, a hash-frozen benchmark of \NItems{} paired items (\NPromptsPerModel{} prompts per model) drawn from FLORES-200, KazParC, Belebele and team-written probes, together with an open pipeline that rejects simulated outputs. This report analyses \NResponses{} saved responses of Gemini 3.5 Flash-Lite covering \NPairs{} FLORES-200 sentences translated in both directions. Uncertainty is estimated with \NBoot{} paired bootstrap resamples and Holm-corrected signed-rank tests.
+\textit{Results:} Translation into Kazakh scored \GemChrfKK{} chrF2 against \GemChrfEN{} into English, a gap of $\GemChrfGap$ points (95\% CI $[\GemChrfGapLo, \GemChrfGapHi]$); \ItemsBelowPct\% of items scored lower into Kazakh. The gap persisted under chrF++, BLEU and TER and after removing pilot items or Latin-script outputs. Same-stem, different-ending matches accounted for \NmKK\% of Kazakh reference words versus \NmEN\% of English ones, and Kazakh outputs used \TokRatio$\times$ as many tokens for \CharRatio$\times$ as many characters.
+\textit{Conclusion:} Lower quality into Kazakh is robust for this model, and suffix-level mismatch and tokenization cost are measurable contributors; question answering, further models and blind human annotation remain to be completed with the released pipeline.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Machine translation, low-resource languages, agglutinative morphology, chrF, paired bootstrap, Turkic languages.
+\end{IEEEkeywords}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_methods}
+\input{sections/04_results}
+\input{sections/05_discussion}
+\input{sections/06_conclusion}
+\input{sections/07_declarations}
+
+\bibliographystyle{IEEEtran-doi}
+\bibliography{references}
+
+\end{document}
