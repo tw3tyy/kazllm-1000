@@ -13,6 +13,8 @@ This is a new isolated evaluation with 1000 translation pairs, 1000 paired QA it
 ## Setup and display
 
 ```sh
+git clone https://github.com/tw3tyy/kazllm-1000.git
+cd kazllm-1000
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -r requirements.txt
@@ -51,6 +53,19 @@ python3 -m unittest discover -s tests -v
 
 Use `build_expanded_dataset.py SOURCE_DIR` in a fresh study directory with the official `flores.tar.gz` and `belebele.zip` to rebuild the data. An existing frozen benchmark is protected from replacement.
 
+
+## Data sources and licences
+
+The benchmark in `data/benchmark.jsonl` redistributes items from public research datasets under their original licences:
+
+| Source | Items | Licence |
+|---|---:|---|
+| FLORES-200 dev (NLLB Team, 2022) | 1000 translation pairs | CC BY-SA 4.0 |
+| Belebele (Bandarkar et al., 2024) | 900 question pairs | CC BY-SA 4.0 |
+| Team-constructed reading/arithmetic questions | 100 question pairs | MIT (this repository) |
+| Team-written grammar probe templates | 1000 sentence pairs | MIT (this repository) |
+
+Source URLs and checksums are in `data/expanded_sources.json`. The code is released under the MIT licence in `LICENSE`. Saved model responses contain no personal data and no credentials.
 
 ## Rejected responses and continuation
 
