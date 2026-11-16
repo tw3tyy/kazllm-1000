@@ -1,0 +1,44 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Answer to the Research Question}
+For the evaluated model and data, translation quality is clearly lower when the model writes Kazakh than when it writes English. The gap of $\GemChrfGapAbs$ chrF2 points is large relative to its uncertainty, appears in about two thirds of individual items, and keeps its direction under four metrics and three sensitivity analyses. Table~\ref{tab:hyp} summarises the status of each hypothesis against the criteria fixed in the protocol. H1 is supported for the translation contrast of one model, but the protocol also requires the gap to exceed that of a dedicated translation system, and this NLLB comparison is pending. H1 for QA and H2, which is defined on blind human annotations, cannot yet be evaluated.
+
+\begin{table}[!t]
+\centering
+\caption{Status of the Hypotheses Against the Protocol Criteria}
+\label{tab:hyp}
+\footnotesize
+\begin{tabular}{@{}p{2.0cm}p{3.4cm}p{2.3cm}@{}}
+\toprule
+Claim & Evidence & Status \\
+\midrule
+H1, translation & $\gap_{\mathrm{chrF2}}=\GemChrfGap$, CI below zero; robust to metric and subset & Supported for Gemini; NLLB-relative test pending \\
+H1, QA & No saved model QA responses & Pending \\
+H2, morphology largest & Automatic near-miss excess of \NmDiff{} pp; human labels provisional & Not testable yet; automatic evidence consistent \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What the Diagnostics Show}
+The diagnostics decompose the gap into parts that can be measured without human labels. Script errors are real but rare: excluding three Latin-script outputs moves the gap by about 1.6 points. Suffix-level mismatch is common: one in ten Kazakh reference words is reproduced with the right beginning but a different ending, four times the English rate, and the mismatched-reference control rules out chance. This pattern is what agglutinative morphology predicts, because a Kazakh word form bundles case, possession and number into suffixes that the model can choose differently from the reference translator, sometimes correctly and sometimes not. The ablation adds a methodological point: BLEU and word-level F1 shrink substantially when suffixes are ignored, whereas chrF2 does not, which supports the protocol's choice of chrF2 as the primary metric for Kazakh and cautions against comparing word-level scores across languages with different morphology~\cite{kocmi2021ship,popovic2015chrf}. Finally, the remaining gap after truncation and the qualitative review both point to lexical and semantic differences as further contributors.
+
+Near-miss matches are not necessarily errors. A different case ending can be an equally valid choice under a different sentence structure, and the review found that most low-scoring outputs were acceptable paraphrases. The diagnostic therefore measures where the model's word forms \emph{diverge} from the reference, not how often they are wrong; the blind annotation is needed to estimate the latter.
+
+\subsection{Comparison With Prior Studies}
+The direction of our result agrees with large multilingual studies that find general LLMs weaker for lower-resource languages~\cite{robinson2023chatgpt,zhu2024multilingual,ahuja2023mega}, and with Kazakh-specific evaluations reporting Kazakh deficits for LLMs~\cite{togmanov2025kazmmlu,maxutov2024kazakh}. Our study differs from these in holding content constant and in testing explanations. Yeshpanov et al.\ attributed weaker scores into Kazakh to agglutinative morphology without a direct test~\cite{yeshpanov2024kazparc}; the prefix analysis provides automatic evidence consistent with that explanation and shows that it is incomplete. Petrov et al.\ reported that the GPT-4 tokenizer needs several times more tokens for Kazakh than for English~\cite{petrov2023tokenizer}; we measured a premium of about two for the Gemini API on output and input text. The measurements are not directly comparable because they use different tokenizers and normalisations, but both indicate that Kazakh users pay more per unit of content, in line with Ahia et al.~\cite{ahia2023cost}. Unlike Rust et al.'s observation that tokenizer quality relates to downstream performance across languages~\cite{rust2021tokenizer}, we found no item-level association between token ratio and score within one language pair, which suggests that tokenization cost and translation quality should be treated as separate problems. The prominence of reference variation in the low-scoring tail echoes the finding of Freitag et al.\ that expert error analysis can change conclusions drawn from automatic metrics~\cite{freitag2021experts}.
+
+\subsection{Practical Implications}
+For users, the results suggest checking three things in LLM output into Kazakh: the script, the endings of inflected words, and names and numerals, where several lexical errors occurred. For developers, the near-miss rate is a cheap, reference-based signal that can be tracked across model versions together with token cost. For evaluators of Kazakh systems, character-level metrics, paired designs and significance tests on discordant items are preferable to raw word-level scores or unpaired accuracy differences, as the random-guessing calibration in Table~\ref{tab:qa} illustrates.
+
+\subsection{Threats to Validity}
+\paragraph*{Internal validity} Pairing holds content constant, but direction also changes the source language and the nature of the reference. FLORES-200 sentences were written in English and translated into Kazakh, so in the \KKEN{} direction the model translates translated Kazakh back towards an original English sentence, while in the \ENKK{} direction it is compared with one translator's Kazakh rendering. Both effects could favour the English direction independently of model ability. The KazParC items, which come from Kazakh-centred sources, and the NLLB baseline are the planned controls for this threat; both are pending. Provider-side model updates between requests cannot be excluded, although all responses were collected on one day and report the same model version.
+
+\paragraph*{Construct validity} chrF2 measures surface overlap with a single reference, not adequacy. Character n-grams in an agglutinative language and in English are not strictly commensurate, which is why the protocol interprets the LLM gap relative to a dedicated system's gap. Script mismatches can drive scores to near zero for readable output. The near-miss diagnostic uses fixed-length prefixes as a proxy for stems; it cannot distinguish valid from invalid inflection and may count unrelated words that share a beginning, although the control shows that such collisions are rare at $k=5$.
+
+\paragraph*{External validity} The evidence concerns one model and version, one provider, zero-shot prompts and three FLORES-200 domains. It does not establish how other models, Kazakh-original text, longer documents or QA behave. FLORES-200 is public, so prior exposure during pretraining is possible~\cite{sainz2023contamination}; the team-written probes, intended as a clean check, have no outputs yet.
+
+\paragraph*{Statistical conclusion validity} The bootstrap treats items as independent, although some FLORES sentences come from the same article. Intervals are conditional on one saved generation per prompt and do not capture variation between runs. Subgroup analyses are exploratory and uncorrected. The saved items are the first \NPairs{} FLORES pairs in collection order rather than a random subset of the benchmark, so coverage was determined by when collection stopped.
+
+\subsection{Limitations}
+The main limitation is incomplete coverage: one third of one model's planned responses, no QA or probe responses, no second or third model, no NLLB baseline and no blind annotation with inter-annotator agreement~\cite{cohen1960}. The test set also contains all pilot items, so a fully independent evaluation set is not available; the pilot-exclusion analysis shows that removing the overlapping translation items barely changes the estimate, but it cannot undo earlier exposure. These limitations restrict the scope of the conclusions, not their validity within that scope, and each can be removed by running the released pipeline without protocol changes.

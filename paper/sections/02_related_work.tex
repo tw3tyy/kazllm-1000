@@ -1,0 +1,36 @@
+\section{Related Work}
+\label{sec:related}
+
+We organise prior work into four themes: how general LLMs perform on lower-resource languages, what is known about Kazakh specifically, how tokenization and morphology interact with model quality, and how translation evaluation should be designed and reported. Table~\ref{tab:closest} compares the studies closest to ours.
+
+\subsection{LLMs and Lower-Resource Languages}
+Evaluations of generative models across many languages consistently find that performance tracks the amount of available data. MEGA evaluated several generative models on multilingual benchmarks and reported large drops for lower-resource languages and non-Latin scripts~\cite{ahuja2023mega}. Lai et al.\ extended this to dozens of tasks and languages and reached a similar conclusion~\cite{lai2023beyond}. For translation in particular, Robinson et al.\ translated FLORES-200 into more than 200 languages with GPT models and found that a language's resource level was the strongest predictor of how far the LLM fell behind dedicated systems~\cite{robinson2023chatgpt}. Zhu et al.\ evaluated eight LLMs in both translation directions on FLORES-101 and showed that even GPT-4 trails strong commercial systems for low-resource directions~\cite{zhu2024multilingual}, and Hendy et al.\ observed that GPT models are competitive for high-resource pairs while weaker elsewhere~\cite{hendy2023good}. These studies establish that a gap is expected but are broad by design: Kazakh appears, if at all, as one of many languages, and the analyses stop at corpus scores.
+
+\subsection{Kazakh Resources and Evaluations}
+Kazakh has gained dedicated resources in recent years. FLORES-101 and its successor FLORES-200 provide professionally translated, multi-way parallel evaluation sentences~\cite{goyal2022flores,nllb2022}; Belebele adds parallel multiple-choice reading comprehension questions built on the same passages~\cite{bandarkar2024belebele}; and KazParC contributes a large Kazakh-centred parallel corpus with an evaluation of translation systems~\cite{yeshpanov2024kazparc}. Earlier work on Turkic languages documented the scarcity of parallel data and the difficulty of translating into agglutinative targets~\cite{mirzakhalov2021turkic}, and Kazakh--English neural translation has been improved with back-translation and transfer learning~\cite{karyukin2023nmt} and with part-of-speech features~\cite{yazar2025kazakh}. Task-specific Kazakh systems, such as geographical question answering, have also been built~\cite{mukanova2024geoqa}. For LLMs, KazMMLU measures knowledge in Kazakh and Russian and shows a strong effect of prompt language~\cite{togmanov2025kazmmlu}, while Maxutov et al.\ piloted seven LLMs on Kazakh tasks~\cite{maxutov2024kazakh}. Parameter-efficient fine-tuning has been proposed to improve LLM translation for low-resource languages~\cite{liang2025lsftl}. None of these studies holds content constant across Kazakh and English for the same LLM, and none links the size of a Kazakh deficit to measurable properties of the generated text.
+
+\subsection{Tokenization and Morphology}
+Tokenizers trained on English-dominated corpora split many other languages into more pieces. Petrov et al.\ measured the resulting length disparities across many tokenizers, with Kazakh among the languages needing several times more tokens than English for parallel text~\cite{petrov2023tokenizer}, and Ahia et al.\ showed that such disparities translate into higher prices and worse utility for users of commercial APIs~\cite{ahia2023cost}. Rust et al.\ found that the quality of a multilingual tokenizer for a given language is associated with downstream performance in that language~\cite{rust2021tokenizer}. For agglutinative languages, morphology is a natural suspect: a missed or wrong suffix changes one word form while leaving the stem intact. The KazParC authors suggested this explanation for weaker scores into Kazakh but did not test it~\cite{yeshpanov2024kazparc}. Our diagnostics are designed to provide such a test with automatic, reproducible measurements.
+
+\subsection{Evaluation Methodology}
+Character-level metrics are preferred for morphologically rich targets because they give partial credit for related word forms: chrF~\cite{popovic2015chrf} and its word-augmented variant chrF++~\cite{popovic2017chrfpp} correlate better with human judgements than BLEU~\cite{papineni2002bleu} in large meta-evaluations~\cite{kocmi2021ship}. TER provides an edit-based view~\cite{snover2006ter}, and sacreBLEU standardises tokenization and signatures so that scores are comparable~\cite{post2018sacrebleu}. Statistical practice in translation research is often weak: Marie et al.\ found that most papers reported no significance testing~\cite{marie2021credibility}, while paired bootstrap resampling~\cite{koehn2004significance} and careful test selection~\cite{dror2018hitchhiker} remain the recommended remedies. Expert error annotation in the MQM framework~\cite{lommel2014mqm,freitag2021experts} is the reference standard for explaining score differences, and benchmark contamination is an increasing concern for public test sets~\cite{sainz2023contamination}. Our design follows these recommendations and states explicitly where it falls short.
+
+\begin{table*}[!t]
+\centering
+\caption{Comparison of the Most Closely Related Studies. ``Paired'' Means That the Same Items Are Scored in Both Language Conditions.}
+\label{tab:closest}
+\footnotesize
+\begin{tabular}{@{}p{3.1cm}p{2.6cm}p{3.0cm}p{1.6cm}p{5.6cm}@{}}
+\toprule
+Study & Languages & Systems & Paired KK/EN & Analysis beyond corpus scores \\
+\midrule
+Robinson et al.\ 2023~\cite{robinson2023chatgpt} & 200+ incl.\ Kazakh & ChatGPT, GPT-4, NLLB, Google & No & Resource-level predictors of the LLM deficit \\
+Zhu et al.\ 2024~\cite{zhu2024multilingual} & 102 incl.\ Kazakh & 8 LLMs, NLLB, M2M & Directions only & In-context learning behaviour \\
+Petrov et al.\ 2023~\cite{petrov2023tokenizer} & Many incl.\ Kazakh & Tokenizers only & n/a & Token-length disparity; no output quality \\
+Yeshpanov et al.\ 2024~\cite{yeshpanov2024kazparc} & KK, EN, RU, TR & Dedicated MT systems & No & Morphology suggested, not tested \\
+Maxutov et al.\ 2024~\cite{maxutov2024kazakh} & Kazakh & 7 LLMs & No & Task-level comparison of models \\
+Togmanov et al.\ 2025~\cite{togmanov2025kazmmlu} & KK, RU & Open and proprietary LLMs & No (KK vs.\ RU) & Prompt language, confidence, negation \\
+\textbf{This work} & KK, EN & Gemini 3.5 Flash-Lite (+3 pending) & \textbf{Yes} & Prefix near-miss with control, truncation ablation, script audit, API token usage \\
+\bottomrule
+\end{tabular}
+\end{table*}
